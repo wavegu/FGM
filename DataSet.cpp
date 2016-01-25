@@ -60,6 +60,13 @@ void GlobalDataSet::LoadData(const char* data_file, Config* conf)
             if (edge_logic_weight_dict.find(curt_edge->edge_type) == edge_logic_weight_dict.end())
             {
                 Logic_weight *logic_weight = new Logic_weight();
+                logic_weight->weights = new double*[2];
+                for (int i = 0; i < 2; i++)
+                {
+                    logic_weight->weights[i] = new double[2];
+                    for (int j = 0; j < 2; j++)
+                        logic_weight->weights[i][j] = 0.8;
+                }
                 edge_logic_weight_dict[curt_edge->edge_type] = logic_weight;
             }
         }

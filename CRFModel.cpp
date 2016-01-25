@@ -15,6 +15,7 @@ extern "C" {
 
 void CRFModel::InitTrain(Config* conf, DataSet* train_data)
 {
+    cout << "init training..." << endl;
     this->conf = conf;
     this->train_data = train_data;
 
@@ -32,6 +33,7 @@ void CRFModel::InitTrain(Config* conf, DataSet* train_data)
     for (int i = 0; i < num_feature; i ++)
         lambda[i] = 0.0;
     SetupFactorGraphs();
+    cout << "init training SetupFactorGraph() ok." << endl;
 }
 
 void CRFModel::GenFeature()
@@ -109,14 +111,14 @@ void CRFModel::SetupFactorGraphs()
     edge_func_list = new EdgeFactorFunction*[ num_edge_type ];
     for (int i = 0; i < num_edge_type; i ++)
     {
-        edge_func_list[i] = new EdgeFactorFunction(num_label, p_lambda, &edge_feature_offset);
+        edge_func_list[i] = new EdgeFactorFunction(num_label, p_lambda, &edge_feature_offset, edge_logic_weight_dict[i]->weights);
         p_lambda += num_edge_feature_each_type;
     }
 
 	triangle_func_list = new EdgeFactorFunction*[ num_triangle_type ];
 	for (int i = 0; i < num_triangle_type; i ++)
 	{
-		triangle_func_list[i] = new EdgeFactorFunction(num_label, p_lambda, &triangle_feature_offset[i]);
+        triangle_func_list[i] = new EdgeFactorFunction(num_label, p_lambda, &triangle_feature_offset[i], NULL);
 		p_lambda += num_triangle_feature[i];
 	}
 
@@ -166,6 +168,7 @@ void CRFModel::SetupFactorGraphs()
 
 void CRFModel::Train()
 {    
+    cout << "training" << endl;
     double* gradient;
     double  f;          // log-likelihood
 
@@ -257,6 +260,7 @@ void CRFModel::Train()
             {
                 //SelfEvaluate();
             }
+//            break;
         } while (iflag != 0 && num_iter < conf->max_iter);
 
         //Transmitter::Master_SendQuit(conf->num_procs);

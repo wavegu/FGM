@@ -3,16 +3,22 @@
 #include "Config.h"
 #include "DataSet.h"
 #include "FactorGraph.h"
+#include <iostream>
+using namespace std;
 
 class EdgeFactorFunction: public FactorFunction
 {
 public:
-    int     num_label;              //???
-    double* lambda;                 //???
-    map<int, int>* feature_offset;  //???
+    int      num_label;
+    double*  lambda;
+    double** logic_weights;
+    map<int, int>* feature_offset;
 
-    EdgeFactorFunction(int num_label, double* p_lambda, map<int,int>* feature_offset)
+    /* Edited by Xiaotao Gu, 2016.1 */
+    // when constructing an EdgeFactorFunction, it has to know its logic weights, given its edge type.
+    EdgeFactorFunction(int num_label, double* p_lambda, map<int,int>* feature_offset, double** logic_weights)
     {
+        this->logic_weights = logic_weights;
         this->num_label = num_label;
         this->lambda = p_lambda;
         this->feature_offset = feature_offset;
@@ -21,7 +27,9 @@ public:
     virtual double GetValue(int y1, int y2)
     {
         int i = (*feature_offset)[ y1 * num_label + y2 ];
-        return exp ( lambda[i] );
+        /* Edited by Xiaotao Gu, 2016.1 */
+//        cout << y1 << ' ' << y2 << ' ' << logic_weights[y1][y2] << endl;
+        return exp ( lambda[i] ) * logic_weights[y1][y2];
     }
 
 	virtual double GetValue(int a, int b, int c)
@@ -54,11 +62,15 @@ public:
 	int				num_triangle_feature[3];
     map<int, int>   edge_feature_offset;
 	map<int, int>   triangle_feature_offset[3];
+    map<int, Logic_weight*> edge_logic_weight_dict;
     EdgeFactorFunction**   edge_func_list;
 	EdgeFactorFunction**   triangle_func_list;
 	
 
-    CRFModel(){}
+    CRFModel(map<int, Logic_weight*> edge_logic_weight_dict)
+    {
+        this->edge_logic_weight_dict = edge_logic_weight_dict;
+    }
 
     void InitTrain(Config* conf, DataSet* train_data);
     void GenFeature();

@@ -93,7 +93,7 @@ public:
 /* Edited by Xiaotao Gu, 2016.1 */
 struct Logic_weight
 {
-    double weights[2][2];
+    double** weights;
 };
 
 class GlobalDataSet

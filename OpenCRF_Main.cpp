@@ -198,27 +198,28 @@ void Estimate(Config* conf)
         // Assign jobs
         //dataset = Transmitter::AssignJobs(g_dataset, conf->num_procs);
     }
-//    else
-//    {
-//        // Get jobs
-//        //dataset = Transmitter::GetJobs();
-//    }
+    else
+    {
+        // Get jobs
+        //dataset = Transmitter::GetJobs();
+    }
 
-//    printf("num_label = %d\n", dataset->num_label);
-//    printf("num_sample = %d\n", dataset->num_sample);
-//    printf("num_edge_type = %d\n", dataset->num_edge_type);
-//    printf("num_attrib_type = %d\n", dataset->num_attrib_type);
+    printf("num_label = %d\n", dataset->num_label);
+    printf("num_sample = %d\n", dataset->num_sample);
+    printf("num_edge_type = %d\n", dataset->num_edge_type);
+    printf("num_attrib_type = %d\n", dataset->num_attrib_type);
 
-//    CRFModel *model = new CRFModel();
+    CRFModel *model = new CRFModel(g_dataset->edge_logic_weight_dict);
     
-//    model->InitTrain(conf, dataset);
-//    model->Train();
+    model->InitTrain(conf, dataset);
+    model->Train();
     
-//    if (conf->my_rank == 0)
-//        model->SaveModel(conf->dst_model_file.c_str());
+    if (conf->my_rank == 0)
+        model->SaveModel(conf->dst_model_file.c_str());
 
-////    MakeEvaluate(conf, g_dataset, model);
+//    MakeEvaluate(conf, g_dataset, model);
 }
+
 
 void EstimateContinue(Config* conf)
 {
@@ -248,7 +249,8 @@ void EstimateContinue(Config* conf)
     printf("num_edge_type = %d\n", dataset->num_edge_type);
     printf("num_attrib_type = %d\n", dataset->num_attrib_type);
 
-    CRFModel *model = new CRFModel();
+    /* Edited by Xiaotao Gu, 2016.1 */
+    CRFModel *model = new CRFModel(g_dataset->edge_logic_weight_dict);
     
     model->InitTrain(conf, dataset);
 
@@ -291,7 +293,7 @@ void Inference(Config* conf)
     printf("num_edge_type = %d\n", dataset->num_edge_type);
     printf("num_attrib_type = %d\n", dataset->num_attrib_type);
 
-    CRFModel *model = new CRFModel();
+    CRFModel *model = new CRFModel(g_dataset->edge_logic_weight_dict);
     
     model->InitTrain(conf, dataset);
     if (conf->my_rank == 0)
@@ -299,6 +301,7 @@ void Inference(Config* conf)
     
     MakeEvaluate(conf, g_dataset, model);
 }
+
 
 int main(int argc, char* argv[])
 {
