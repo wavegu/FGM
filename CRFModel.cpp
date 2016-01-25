@@ -25,6 +25,8 @@ void CRFModel::InitTrain(Config* conf, DataSet* train_data)
 	num_triangle_type = 3;
 
     GenFeature();
+    // num_feature = num_label * num_attrib_type + num_edge_type * num_edge_feature_each_type + some_triangle_param
+    // lambda stores parameters for node\edge\triangles' parameter for each condition (including edge type and node labels).
     lambda = new double[num_feature];
     // Initialize parameters
     for (int i = 0; i < num_feature; i ++)
@@ -40,7 +42,9 @@ void CRFModel::GenFeature()
     num_attrib_parameter = num_label * num_attrib_type;
     num_feature += num_attrib_parameter;
 
-    // edge feature: f(edge_type, y1, y2)
+    // edge feature: f(edge_type, y1, y2) ------- y1, y2 are node labels
+    // for num_label==2, edge_feature_offset = [0, 1, 1, 2], num_edge_feature_each_type = 3
+    // each edge, we consider three conditions: [0, 0], [0, 1], [1, 1]
     edge_feature_offset.clear();
     int offset = 0;
     for (int y1 = 0; y1 < num_label; y1 ++)
@@ -100,6 +104,7 @@ void CRFModel::GenFeature()
 
 void CRFModel::SetupFactorGraphs()
 {
+    // p_lambda is a array starting from edge parameters
     double* p_lambda = lambda + num_attrib_parameter;
     edge_func_list = new EdgeFactorFunction*[ num_edge_type ];
     for (int i = 0; i < num_edge_type; i ++)
