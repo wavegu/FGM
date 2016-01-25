@@ -198,26 +198,26 @@ void Estimate(Config* conf)
         // Assign jobs
         //dataset = Transmitter::AssignJobs(g_dataset, conf->num_procs);
     }
-    else
-    {
-        // Get jobs
-        //dataset = Transmitter::GetJobs();
-    }
+//    else
+//    {
+//        // Get jobs
+//        //dataset = Transmitter::GetJobs();
+//    }
 
-    printf("num_label = %d\n", dataset->num_label);
-    printf("num_sample = %d\n", dataset->num_sample);
-    printf("num_edge_type = %d\n", dataset->num_edge_type);
-    printf("num_attrib_type = %d\n", dataset->num_attrib_type);
+//    printf("num_label = %d\n", dataset->num_label);
+//    printf("num_sample = %d\n", dataset->num_sample);
+//    printf("num_edge_type = %d\n", dataset->num_edge_type);
+//    printf("num_attrib_type = %d\n", dataset->num_attrib_type);
 
-    CRFModel *model = new CRFModel();
+//    CRFModel *model = new CRFModel();
     
-    model->InitTrain(conf, dataset);    
-    model->Train();
+//    model->InitTrain(conf, dataset);
+//    model->Train();
     
-    if (conf->my_rank == 0)
-        model->SaveModel(conf->dst_model_file.c_str());
+//    if (conf->my_rank == 0)
+//        model->SaveModel(conf->dst_model_file.c_str());
 
-//    MakeEvaluate(conf, g_dataset, model);
+////    MakeEvaluate(conf, g_dataset, model);
 }
 
 void EstimateContinue(Config* conf)

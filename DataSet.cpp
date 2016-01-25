@@ -3,6 +3,8 @@
 
 #include <cstdio>
 #include <stdlib.h>
+#include <iostream>
+using namespace std;
 
 #define MAX_BUF_SIZE 65536
 
@@ -53,6 +55,13 @@ void GlobalDataSet::LoadData(const char* data_file, Config* conf)
                 curt_edge->edge_type = edge_type_dict.GetId( tokens[3] );
 
             curt_sample->edge.push_back(curt_edge);
+
+            /* Edited by Xiaotao Gu, 2016.1 */
+            if (edge_logic_weight_dict.find(curt_edge->edge_type) == edge_logic_weight_dict.end())
+            {
+                Logic_weight *logic_weight = new Logic_weight();
+                edge_logic_weight_dict[curt_edge->edge_type] = logic_weight;
+            }
         }
 		else if (tokens[0] == "#triangle")//triangle
 		{
@@ -72,6 +81,23 @@ void GlobalDataSet::LoadData(const char* data_file, Config* conf)
 		{
 			curt_sample->color[atoi(tokens[1].c_str())] = atoi(tokens[2].c_str());
 		}
+        /* Edited by Xiaotao Gu, 2016.1 */
+        else if (tokens[0] == "#logic"){
+            cout << "logic" << endl;
+            int edge_type = edge_type_dict.GetIdConst(tokens[1]);
+            if (edge_type < 0)
+            {
+                cout << "Error, no such edge: " << tokens[1] << endl;
+            }
+            else
+            {
+                Logic_weight *logic_weight = edge_logic_weight_dict[edge_type];
+                int a_label = atoi(tokens[2].c_str());
+                int b_label = atoi(tokens[3].c_str());
+                double weight = atof(tokens[4].c_str());
+                logic_weight->weights[a_label][b_label] = weight;
+            }
+        }
         else //node
         {
             DataNode* curt_node = new DataNode();
@@ -113,6 +139,17 @@ void GlobalDataSet::LoadData(const char* data_file, Config* conf)
     num_attrib_type = attrib_dict.GetSize();
     num_edge_type = edge_type_dict.GetSize();
     if (num_edge_type == 0) num_edge_type = 1;
+
+    /* Edited by Xiaotao Gu, 2016.1 */
+    map<int, Logic_weight*>::iterator it;
+    for (it = edge_logic_weight_dict.begin(); it != edge_logic_weight_dict.end(); ++it)
+    {
+        cout << "key: " << it->first << endl;
+        for (int i = 0; i < 2; i++)
+            for (int j = 0; j < 2; j++)
+                cout << it->second->weights[i][j] << ' ';
+        cout << endl;
+    }
 
     fclose(fin);
 }

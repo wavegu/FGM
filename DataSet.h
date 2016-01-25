@@ -90,10 +90,17 @@ public:
     }
 };
 
+/* Edited by Xiaotao Gu, 2016.1 */
+struct Logic_weight
+{
+    double weights[2][2];
+};
+
 class GlobalDataSet
 {
 public:
     vector<DataSample*> sample;
+    map<int, Logic_weight*> edge_logic_weight_dict; /* Edited by Xiaotao Gu, 2016.1 */
 
     int num_label;
     int num_attrib_type;
