@@ -397,7 +397,7 @@ void FactorGraph::CalculateMarginal()
 			for (int a = 0; a < num_label; a ++)
 				for (int b = 0; b < num_label; b ++)
 				{
-					factor_node[i].marginal[a][b] +=
+                    factor_node[i].marginal[a][b] =
 							factor_node[i].belief[0][a]
 						  * factor_node[i].belief[1][b]
 						  * factor_node[i].func->GetValue(a, b);

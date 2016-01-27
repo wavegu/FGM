@@ -18,8 +18,8 @@ void GlobalDataSet::LoadData(const char* data_file, Config* conf)
 
     FILE        *fin = fopen(data_file, "r");
 
-	label_dict.GetId("1");
-	label_dict.GetId("0");
+    label_dict.GetId("0");
+    label_dict.GetId("1");
 
     for (;;)
     {
@@ -65,7 +65,7 @@ void GlobalDataSet::LoadData(const char* data_file, Config* conf)
                 {
                     logic_weight->weights[i] = new double[2];
                     for (int j = 0; j < 2; j++)
-                        logic_weight->weights[i][j] = 0.8;
+                        logic_weight->weights[i][j] = 0.0;
                 }
                 edge_logic_weight_dict[curt_edge->edge_type] = logic_weight;
             }
@@ -101,8 +101,8 @@ void GlobalDataSet::LoadData(const char* data_file, Config* conf)
                 Logic_weight *logic_weight = edge_logic_weight_dict[edge_type];
                 int a_label = atoi(tokens[2].c_str());
                 int b_label = atoi(tokens[3].c_str());
-                double weight = atof(tokens[4].c_str());
-                logic_weight->weights[a_label][b_label] = weight;
+//                double weight = atof(tokens[4].c_str());
+                logic_weight->weights[a_label][b_label] = 1.0;
             }
         }
         else //node
@@ -113,6 +113,9 @@ void GlobalDataSet::LoadData(const char* data_file, Config* conf)
             string label_name = tokens[0].substr(1);
 
             curt_node->label = label_dict.GetId(label_name);
+
+            cout << "label_name = " << label_name << " label = " << curt_node->label << endl;
+
             if (label_type == '+')
                 curt_node->label_type = Enum::KNOWN_LABEL;
             else if (label_type == '?')

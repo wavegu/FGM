@@ -111,7 +111,7 @@ void CRFModel::SetupFactorGraphs()
     edge_func_list = new EdgeFactorFunction*[ num_edge_type ];
     for (int i = 0; i < num_edge_type; i ++)
     {
-        edge_func_list[i] = new EdgeFactorFunction(num_label, p_lambda, &edge_feature_offset, edge_logic_weight_dict[i]->weights);
+        edge_func_list[i] = new EdgeFactorFunction(num_label, p_lambda, &edge_feature_offset, edge_logic_weight_dict[i]->weights, i);
         p_lambda += num_edge_feature_each_type;
     }
 
@@ -244,7 +244,8 @@ void CRFModel::Train()
                 for (int i = 0; i < num_feature; i ++)
                     g_norm += gradient[i] * gradient[i];
                 g_norm = sqrt(g_norm);
-                
+//                for (int i = 0; i < num_feature;i ++) cout << gradient[i] << " "; cout << endl;
+//                cout << g_norm << endl;
                 if (g_norm > 1e-8)
                 {
                     for (int i = 0; i < num_feature; i ++)
@@ -260,6 +261,16 @@ void CRFModel::Train()
             {
                 //SelfEvaluate();
             }
+
+            int pid0 = GetEdgeParameterId(0, 1, 1);
+            int pid1 = GetEdgeParameterId(1, 1, 0);
+            int pid2 = GetEdgeParameterId(2, 1, 1);
+//            for (int i = num_attrib_type * 2; i < num_feature;i ++) cout << lambda[i] << " "; cout << endl;
+            //cout << "edge_type = " << edge_type << " y1 = " << y1 << " y2 = " << y2 << " weight = " << logic_weights[y1][y2] << " result = " << exp ( lambda[i] * logic_weights[y1][y2] ) << "lambda = " << exp(lambda[i]) << endl;
+            cout << "edge_type = " << 0 << " y1 = " << 1 << " y2 = " << 1 << " exp lambda = " << exp(lambda[pid0]) <<  " lambda = " << lambda[pid0] << endl;
+            cout << "edge_type = " << 1 << " y1 = " << 1 << " y2 = " << 0 << " exp lambda = " << exp(lambda[pid1]) <<  " lambda = " << lambda[pid1] << endl;
+            cout << "edge_type = " << 2 << " y1 = " << 1 << " y2 = " << 1 << " exp lambda = " << exp(lambda[pid2]) <<  " lambda = " << lambda[pid2] << endl;
+
 //            break;
         } while (iflag != 0 && num_iter < conf->max_iter);
 
@@ -352,7 +363,7 @@ double CRFModel::CalcPartialLabeledGradientForSample(DataSample* sample, FactorG
     }
 
     factor_graph->BeliefPropagation(conf->max_bp_iter);
-    factor_graph->CalculateMarginal();    
+    factor_graph->CalculateMarginal();
 
     /***
      * Gradient = E_{Y|Y_L} f_i - E_{Y} f_i
@@ -368,6 +379,8 @@ double CRFModel::CalcPartialLabeledGradientForSample(DataSample* sample, FactorG
         }
     }
 
+    cout << "step 0:" << gradient[ GetEdgeParameterId(1, 1, 0) ] << " " << gradient[ GetEdgeParameterId(2, 1, 1) ] << endl;
+    vector<int> tv;
     for (int i = 0; i < factor_graph->m; i ++)
     {
 		if (SIZE(factor_graph->factor_node[i].neighbor) == 2)
@@ -375,8 +388,22 @@ double CRFModel::CalcPartialLabeledGradientForSample(DataSample* sample, FactorG
 			for (int a = 0; a < num_label; a ++)
 				for (int b = 0; b < num_label; b ++)
 				{
-					gradient[ GetEdgeParameterId(sample->edge[i]->edge_type, a, b) ] += factor_graph->factor_node[i].marginal[a][b];
-				}
+                    if (((EdgeFactorFunction*)(factor_graph->factor_node[i].func))->logic_weights[a][b] < 1e-6) continue;
+					gradient[ GetEdgeParameterId(sample->edge[i]->edge_type, a, b) ] += factor_graph->factor_node[i].marginal[a][b];                
+                }
+            if (((EdgeFactorFunction*)(factor_graph->factor_node[i].func))->edge_type != 1) continue;
+            if (((VariableNode*)(factor_graph->factor_node[i].neighbor[0]))->label_type == Enum::KNOWN_LABEL &&
+                    ((VariableNode*)(factor_graph->factor_node[i].neighbor[1]))->label_type == Enum::KNOWN_LABEL) {
+                int a = ((VariableNode*)(factor_graph->factor_node[i].neighbor[0]))->y;
+                int b = ((VariableNode*)(factor_graph->factor_node[i].neighbor[1]))->y;
+                //cout << "known: " << i << " " << factor_graph->factor_node[i].marginal[a][b] <<;
+//                cout << "(" << i << "," << a<<"," << b <<"," << factor_graph->factor_node[i].marginal[a][b] <<") ";
+            }
+            if (factor_graph->factor_node[i].marginal[1][0] > 0) {
+                //cout << "step 2: " << i << " " << factor_graph->factor_node[i].marginal[1][0] << endl;
+                //cout << "("<< i << ", " << factor_graph->factor_node[i].marginal[1][0] << "), ";
+                //tv.push_back(factor_graph->factor_node[i].marginal[1][0]);
+            }
 		}
 		else
 		{
@@ -388,7 +415,9 @@ double CRFModel::CalcPartialLabeledGradientForSample(DataSample* sample, FactorG
 					}
 		}
     }
-
+    //cout << endl;
+    //for (int i = 0; i < 100; i++) cout<< tv[i] << " "; cout << endl;
+    cout << "step 1: " << gradient[ GetEdgeParameterId(1, 1, 0) ] << " " << gradient[ GetEdgeParameterId(2, 1, 1) ] << endl;
     //****************************************************************
     // Belief Propagation 2: labeled data are not given.
     //****************************************************************
@@ -421,6 +450,7 @@ double CRFModel::CalcPartialLabeledGradientForSample(DataSample* sample, FactorG
                 gradient[ GetAttribParameterId(y, sample->node[i]->attrib[t]) ] -= sample->node[i]->value[t] * factor_graph->var_node[i].marginal[y];
         }
     }
+    tv.clear();
     for (int i = 0; i < factor_graph->m; i ++)
     {
 		if (SIZE(factor_graph->factor_node[i].neighbor) == 2)
@@ -428,8 +458,15 @@ double CRFModel::CalcPartialLabeledGradientForSample(DataSample* sample, FactorG
 			for (int a = 0; a < num_label; a ++)
 				for (int b = 0; b < num_label; b ++)
 				{
+                    if (((EdgeFactorFunction*)(factor_graph->factor_node[i].func))->logic_weights[a][b] < 1e-6) continue;
 					gradient[ GetEdgeParameterId(sample->edge[i]->edge_type, a, b) ] -= factor_graph->factor_node[i].marginal[a][b];
 				}
+           if (((EdgeFactorFunction*)(factor_graph->factor_node[i].func))->edge_type != 1) continue;
+           if (factor_graph->factor_node[i].marginal[1][0] > 0) {
+               //cout << "step 2: " << i << " " << factor_graph->factor_node[i].marginal[1][0] << endl;
+               //cout << "("<< i << ", " << factor_graph->factor_node[i].marginal[1][0] << "), ";
+               //tv.push_back(factor_graph->factor_node[i].marginal[1][0]);
+           }
 		}
 		else
 		{
@@ -441,7 +478,9 @@ double CRFModel::CalcPartialLabeledGradientForSample(DataSample* sample, FactorG
 					}
 		}
     }
-    
+    //cout << endl;
+    //for (int i = 0; i < 100; i++) cout<< tv[i] << " "; cout << endl;
+    cout << "step 2: " << gradient[ GetEdgeParameterId(1, 1, 0) ] << " " << gradient[ GetEdgeParameterId(2, 1, 1) ] <<endl;
     // Calculate gradient & log-likelihood
     double f = 0.0, Z = 0.0;
 

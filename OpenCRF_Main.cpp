@@ -194,7 +194,7 @@ void Estimate(Config* conf)
         g_dataset->LoadData(conf->train_file.c_str(), conf);
         g_dataset->label_dict.SaveMappingDict(conf->dict_file.c_str());
 
-		dataset = AssignJobs(g_dataset, conf->num_procs);
+        dataset = AssignJobs(g_dataset, conf->num_procs);
         // Assign jobs
         //dataset = Transmitter::AssignJobs(g_dataset, conf->num_procs);
     }
