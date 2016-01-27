@@ -85,7 +85,13 @@ void FactorNode::BeliefPropagation(double* diff_max, bool labeled_given)
 				{
 					double s = 0;
 					for (int y1 = 0; y1 < num_label; y1 ++)
-						s += func->GetValue(y, y1) * belief[1 - i][y1];
+                        if (i == 0) {
+						   s += func->GetValue(y, y1) * belief[1 - i][y1];
+                        }
+                        else {
+                           s += func->GetValue(y1, y) * belief[1 - i][y1];     
+                        }
+
 					msg[y] = s;
 				}
 				NormalizeMessage();
@@ -165,7 +171,9 @@ void FactorNode::MaxSumPropagation(double* diff_max, bool labeled_given)
 					double s = -1e200;
 					for (int y1 = 0; y1 < num_label; y1 ++)
 					{
-						double t = func->GetValue(y, y1) * belief[1 - i][y1];
+						double t = 0;
+                        if (i == 0) t = func->GetValue(y, y1) * belief[1 - i][y1];
+                        else t = func->GetValue(y1, y) * belief[1 - i][y1];
 						if (t > s) 
 							s = t;
 					}
